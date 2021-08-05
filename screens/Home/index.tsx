@@ -4,7 +4,9 @@ import { StyleSheet, FlatList } from 'react-native'
 import { Card, Paragraph } from 'react-native-paper'
 import Screen from '../../components/Screen'
 
-import { Text } from '../../components/Themed'
+import DownloadButton from '../../components/DownloadButton'
+
+import { Text, useThemeColor } from '../../components/Themed'
 import Colors from '../../constants/Colors'
 import { meditations, MeditationItem } from '../../data/meditations'
 import { HomeParamList } from '../../types'
@@ -14,6 +16,8 @@ interface Props {
 }
 
 export default function Home({ navigation }: Props) {
+  const textColor = useThemeColor({}, 'text')
+
   const renderPopularCard = ({ item }: MeditationItem) => {
     return (
       <Card
@@ -27,13 +31,14 @@ export default function Home({ navigation }: Props) {
       >
         <Card.Cover style={[styles.cardImage, styles.popularImage]} source={item.image} />
         <Card.Title
-          titleStyle={styles.cardTitle}
+          titleStyle={[styles.cardTitle, { color: textColor }]}
           subtitleStyle={styles.cardSubtitle}
           title={item.title}
           subtitle={item.subtitle}
         />
         <Card.Content style={styles.cardContent}>
           <Paragraph style={styles.cardParagraph}>{item.time} minutes</Paragraph>
+          <DownloadButton id={item.id} />
         </Card.Content>
       </Card>
     )
@@ -51,13 +56,14 @@ export default function Home({ navigation }: Props) {
       >
         <Card.Cover style={styles.cardImage} source={item.image} />
         <Card.Title
-          titleStyle={styles.cardTitle}
+          titleStyle={[styles.cardTitle, { color: textColor }]}
           subtitleStyle={styles.cardSubtitle}
           title={item.title}
           subtitle={item.subtitle}
         />
         <Card.Content style={styles.cardContent}>
           <Paragraph style={styles.cardParagraph}>{item.time} minutes</Paragraph>
+          <DownloadButton id={item.id} />
         </Card.Content>
       </Card>
     )
@@ -103,7 +109,6 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    color: Colors.light.gray900,
   },
   cardImage: {
     height: 135,

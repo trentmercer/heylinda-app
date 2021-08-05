@@ -5,20 +5,28 @@ import { Audio, AVPlaybackStatus } from 'expo-av'
 import PlayerControls from './PlayerControls'
 import Screen from '../../components/Screen'
 import { Text } from '../../components/Themed'
+import DownloadButton from '../../components/DownloadButton'
 import { useMeditation } from '../../hooks'
 import NotFoundScreen from '../NotFoundScreen'
-import { HomeParamList } from '../../types'
-import { RouteProp } from '@react-navigation/native'
+import { HomeParamList, MainStackParamList } from '../../types'
+import { CompositeNavigationProp, RouteProp } from '@react-navigation/native'
 import { useMsToTime, useAppDispatch } from '../../hooks'
 import { completed } from '../../redux/meditationSlice'
 import { LoadingScreen } from '../../components'
 import { useCallback } from 'react'
+import { StackNavigationProp } from '@react-navigation/stack'
 
 type PlayRouteProp = RouteProp<HomeParamList, 'PlayScreen'>
+
+type PlayNavProp = CompositeNavigationProp<
+  StackNavigationProp<HomeParamList, 'PlayScreen'>,
+  StackNavigationProp<MainStackParamList>
+>
 interface Props {
+  navigation: PlayNavProp
   route: PlayRouteProp
 }
-export default function PlayScreen({ route }: Props) {
+export default function PlayScreen({ route, navigation }: Props) {
   const { id } = route.params
   const meditation = useMeditation(id)
   const [isLoadingAudio, setIsLoadingAudio] = React.useState(true)
@@ -30,6 +38,7 @@ export default function PlayScreen({ route }: Props) {
   const positionTime = useMsToTime(positionMillis)
   const dispatch = useAppDispatch()
   const uri = meditation?.uri || ''
+  const [filepath, setFilepath] = React.useState('')
 
   const onPlaybackStatusUpdate = useCallback(
     (playbackStatus: AVPlaybackStatus) => {
@@ -46,10 +55,11 @@ export default function PlayScreen({ route }: Props) {
         if (playbackStatus.didJustFinish) {
           dispatch(completed(playbackStatus.durationMillis || 0))
           setIsPlaying(false)
+          navigation.replace('CompletedScreen')
         }
       }
     },
-    [dispatch]
+    [dispatch, navigation]
   )
 
   React.useEffect(() => {
@@ -61,7 +71,7 @@ export default function PlayScreen({ route }: Props) {
   }, [sound])
 
   React.useEffect(() => {
-    const loadAudio = async () => {
+    const loadAudio = async (audioFile :string) => {
       setIsLoadingAudio(true)
       await Audio.setAudioModeAsync({
         playsInSilentModeIOS: true,
@@ -71,8 +81,9 @@ export default function PlayScreen({ route }: Props) {
       setSound(_sound)
       setIsLoadingAudio(false)
     }
+
     if (uri) {
-      loadAudio()
+      loadAudio(uri)
     }
   }, [onPlaybackStatusUpdate, uri])
 
@@ -122,6 +133,7 @@ export default function PlayScreen({ route }: Props) {
         positionTime={positionTime}
         durationTime={durationTime}
       />
+      <DownloadButton id={id} />
     </Screen>
   )
 }
